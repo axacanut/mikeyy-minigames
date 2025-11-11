@@ -1,0 +1,241 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+  color: #fff;
+  min-height: 100vh;
+  text-align: center;
+}
+
+header {
+  padding: 30px 20px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 15px rgba(255,0,0,0.3);
+  border-bottom: 4px solid #ff0000;
+}
+
+header h1 {
+  font-size: 2.5em;
+  background: linear-gradient(135deg, #ff0000 0%, #000000 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 10px;
+}
+
+header p {
+  font-size: 1.1em;
+  color: #666;
+  margin-bottom: 15px;
+}
+
+.balance-container {
+  margin-top: 15px;
+  font-weight: bold;
+  font-size: 1.3em;
+  color: #ff0000;
+  padding: 10px;
+  background: linear-gradient(135deg, rgba(255, 0, 0, 0.1), rgba(0, 0, 0, 0.2));
+  border-radius: 8px;
+  display: inline-block;
+}
+
+.game-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 25px;
+  padding: 40px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.game-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 40px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  font-weight: bold;
+  font-size: 1.2em;
+  border: 3px solid transparent;
+  position: relative;
+  overflow: hidden;
+  color: #000;
+}
+
+.game-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #ff0000, #000000);
+}
+
+.game-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 30px rgba(255, 0, 0, 0.3);
+  border-color: #ff0000;
+}
+
+.game-card .game-icon {
+  font-size: 3em;
+  margin-bottom: 10px;
+}
+
+button {
+  margin: 10px;
+  padding: 12px 28px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #ff0000 0%, #000000 100%);
+  color: #fff;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1em;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(255, 0, 0, 0.3);
+}
+
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(255, 0, 0, 0.4);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+footer {
+  padding: 30px 20px;
+  background: rgba(255, 255, 255, 0.95);
+  border-top: 4px solid #ff0000;
+}
+
+/* Game-specific styles */
+#gameContainer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  max-width: 400px;
+  margin: 40px auto;
+}
+
+.mole-spot, .clicker-box, .card {
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 10px;
+}
+
+.mole-spot {
+  width: 80px;
+  height: 80px;
+  background: #eee;
+}
+
+.active-mole {
+  background: linear-gradient(135deg, #ff0000 0%, #000000 100%) !important;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(255, 0, 0, 0.4);
+}
+
+/* Clicker game styles */
+.clicker-box {
+  width: 150px;
+  height: 150px;
+  background: linear-gradient(135deg, #ff0000 0%, #000000 100%);
+  color: white;
+  font-weight: bold;
+  font-size: 1.5em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);
+  margin: 30px auto;
+  pointer-events: none;
+  user-select: none;
+}
+
+.clicker-box:hover {
+  transform: scale(1.05);
+}
+
+.clicker-box:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 8px rgba(255, 0, 0, 0.2);
+}
+
+/* Memory game styles */
+.memory-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 80px);
+  gap: 10px;
+  margin: 30px auto;
+  justify-content: center;
+}
+
+.card {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #ff0000 0%, #000000 100%);
+  color: white;
+  font-weight: bold;
+  font-size: 2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  perspective: 1000px;
+}
+
+.card.flipped {
+  background: #fff;
+  color: #333;
+}
+
+.card.matched {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Number guessing game styles */
+.guess-input {
+  padding: 12px 20px;
+  font-size: 1.1em;
+  border: 2px solid #ff0000;
+  border-radius: 8px;
+  margin: 20px 10px;
+  width: 200px;
+  max-width: 90%;
+}
+
+.guess-input:focus {
+  outline: none;
+  border-color: #000000;
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+}
+
+.game-status {
+  margin: 20px;
+  padding: 15px;
+  background: rgba(255, 0, 0, 0.1);
+  border-radius: 8px;
+  font-size: 1.1em;
+  color: #ff0000;
+  font-weight: bold;
+}
+
+.timer {
+  font-size: 1.5em;
+  color: #ff0000;
+  font-weight: bold;
+  margin: 20px;
+}

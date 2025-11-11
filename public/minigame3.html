@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clicker Game - Minigames</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>⚡ Clicker Frenzy</h1>
+    <p>Click as fast as you can in 10 seconds!</p>
+    <div class="balance-container">
+      <span>Your MBucks: </span><span id="balance">0</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="game-status">
+      <span id="gameMessage">Get ready to click!</span>
+    </div>
+    <div class="timer" id="timerDisplay">Click the button below to start!</div>
+    <div onclick="handleClick()" style="cursor: pointer; display: inline-block;">
+      <div class="clicker-box" id="clickerBtn">
+        CLICK ME!
+        <br>
+        <span id="clickCount" style="font-size: 0.6em;">0</span>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <button id="refreshBalanceBtn">Refresh Balance</button>
+    <button onclick="location.href='index.html'">Back to Gallery</button>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    let clicks = 0;
+    let timeLeft = 10;
+    let gameActive = false;
+    let gameStarted = false;
+    let lastClickTime = 0;
+    let clickTimestamps = [];
+    const CLICK_THRESHOLD = 15; // Max clicks per second to be considered human
+    const SUSPICIOUS_WINDOW = 1000; // 1 second window
+
+    function refreshBalance() {
+      try {
+        fetch('/balance', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({userId: window.currentUser?.userId})
+        })
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('balance').textContent = data.mbucks || 0;
+        });
+      } catch (err) {
+        console.error('Error refreshing balance:', err);
+      }
+    }
+
+    function detectAutoClicker(currentTime) {
+      // Add current click to timestamps
+      clickTimestamps.push(currentTime);
+      
+      // Remove timestamps older than the window
+      clickTimestamps = clickTimestamps.filter(ts => currentTime - ts < SUSPICIOUS_WINDOW);
+      
+      // Check if too many clicks in the window (indicates auto-clicker)
+      if (clickTimestamps.length > CLICK_THRESHOLD) {
+        return true;
+      }
+      return false;
+    }
+
+    function handleClick() {
+      if (!gameStarted) {
+        startGame();
+        return;
+      }
+
+      if (gameActive) {
+        const currentTime = Date.now();
+        
+        // Detect auto-clicker
+        if (detectAutoClicker(currentTime)) {
+          gameActive = false;
+          endGameCheat();
+          return;
+        }
+
+        clicks++;
+        document.getElementById('clickCount').textContent = clicks;
+        
+        // Visual feedback
+        const btn = document.getElementById('clickerBtn');
+        btn.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+          btn.style.transform = 'scale(1)';
+        }, 50);
+      }
+    }
+
+    function startGame() {
+      gameStarted = true;
+      gameActive = true;
+      clicks = 0;
+      timeLeft = 10;
+      clickTimestamps = [];
+
+      document.getElementById('clickerBtn').style.background = 'linear-gradient(135deg, #00ff00 0%, #00cc00 100%)';
+      document.getElementById('gameMessage').textContent = 'GO! Click as fast as you can!';
+      document.getElementById('clickCount').textContent = '0';
+
+      const timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timerDisplay').textContent = timeLeft + 's';
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          gameActive = false;
+          endGame();
+        }
+      }, 1000);
+    }
+
+    function endGame() {
+      const baseReward = Math.floor(clicks / 5); // 0.2 MBucks per click
+      const bonus = clicks > 100 ? 10 : clicks > 70 ? 5 : 0;
+      const totalReward = baseReward + bonus;
+
+      document.getElementById('clickerBtn').style.background = 'linear-gradient(135deg, #ff0000 0%, #000000 100%)';
+      document.getElementById('clickerBtn').style.cursor = 'default';
+      document.getElementById('clickerBtn').onclick = null;
+      document.getElementById('clickerBtn').innerHTML = `
+        🎉 Game Over!<br>
+        <span style="font-size: 0.8em;">${clicks} clicks</span>
+      `;
+
+      document.getElementById('gameMessage').textContent = `You earned ${totalReward} MBucks! ${bonus > 0 ? `(+${bonus} bonus)` : ''}`;
+      document.getElementById('timerDisplay').textContent = 'Game Complete!';
+
+      fetch('/earn', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({userId: window.currentUser?.userId, mbucks: totalReward})
+      }).then(() => {
+        refreshBalance();
+      });
+    }
+
+    function endGameCheat() {
+      document.getElementById('clickerBtn').style.background = 'linear-gradient(135deg, #ff0000 0%, #000000 100%)';
+      document.getElementById('clickerBtn').innerHTML = `
+        ⚠️ CHEAT DETECTED!<br>
+        <span style="font-size: 0.8em;">Auto-clicker not allowed</span>
+      `;
+
+      document.getElementById('gameMessage').textContent = '🚫 Suspicious clicking detected! Game reset. No MBucks earned.';
+      document.getElementById('timerDisplay').textContent = 'Invalid Game';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.currentUser && window.currentUser.userId) {
+        refreshBalance();
+        document.getElementById('refreshBalanceBtn').addEventListener('click', refreshBalance);
+      } else {
+        alert('Error: User not authenticated. Redirecting to login...');
+        window.location.href = '/login.html';
+      }
+    });
+  </script>
+</body>
+</html>

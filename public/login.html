@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Mikeyy's Minigames</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .login-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+    }
+    
+    .login-box {
+      background: white;
+      padding: 60px 40px;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      text-align: center;
+      max-width: 400px;
+    }
+    
+    .login-box h1 {
+      font-size: 2.5em;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #ff0000 0%, #000000 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .login-box p {
+      color: #666;
+      margin-bottom: 40px;
+      font-size: 1.1em;
+    }
+    
+    .discord-btn {
+      background: #5865F2;
+      color: white;
+      padding: 15px 40px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1em;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 15px rgba(88, 101, 242, 0.4);
+    }
+    
+    .discord-btn:hover {
+      background: #4752C4;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(88, 101, 242, 0.6);
+    }
+    
+    .discord-icon {
+      font-size: 1.3em;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-box">
+      <h1>🎮 Mikeyy's Minigames</h1>
+      <p>Login with your Discord account to earn MBucks!</p>
+      <a href="/auth/discord" class="discord-btn">
+        <span class="discord-icon">💜</span>
+        Login with Discord
+      </a>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Number Guessing - Minigames</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>🎯 Number Guessing Game</h1>
+    <p>Guess the number between 1 and 100! Win big bonuses!</p>
+    <div class="balance-container">
+      <span>Your MBucks: </span><span id="balance">0</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="game-status" id="gameStatus">Think of a number between 1 and 100...</div>
+    <input type="number" id="guessInput" class="guess-input" placeholder="Enter your guess" min="1" max="100">
+    <br>
+    <button onclick="submitGuess()">Submit Guess</button>
+    <button onclick="startNewRound()">New Game</button>
+    <div id="resultsContainer"></div>
+  </main>
+
+  <footer>
+    <button id="refreshBalanceBtn">Refresh Balance</button>
+    <button onclick="location.href='index.html'">Back to Gallery</button>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    let secretNumber = 0;
+    let roundsWon = 0;
+    let totalEarnings = 0;
+    let gamesPlayed = 0;
+    const maxRounds = 5;
+
+    function refreshBalance() {
+      try {
+        fetch('/balance', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({userId: window.currentUser?.userId})
+        })
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('balance').textContent = data.mbucks || 0;
+        });
+      } catch (err) {
+        console.error('Error refreshing balance:', err);
+      }
+    }
+
+    function startNewRound() {
+      secretNumber = Math.floor(Math.random() * 100) + 1;
+      gamesPlayed++;
+      document.getElementById('guessInput').value = '';
+      document.getElementById('guessInput').focus();
+      document.getElementById('gameStatus').textContent = `Game ${gamesPlayed}/${maxRounds} - Guess a number between 1 and 100`;
+      document.getElementById('resultsContainer').innerHTML = '';
+    }
+
+    function submitGuess() {
+      const guess = parseInt(document.getElementById('guessInput').value);
+      
+      if (isNaN(guess) || guess < 1 || guess > 100) {
+        alert('Please enter a valid number between 1 and 100');
+        return;
+      }
+
+      let reward = 0;
+      let message = '';
+
+      if (guess === secretNumber) {
+        reward = 15;
+        roundsWon++;
+        message = `🎉 Correct! The number was ${secretNumber}! You earned ${reward} MBucks!`;
+      } else if (guess < secretNumber) {
+        message = `❌ Too low! Try a higher number.`;
+      } else {
+        message = `❌ Too high! Try a lower number.`;
+      }
+
+      const resultDiv = document.createElement('div');
+      resultDiv.className = 'game-status';
+      resultDiv.innerHTML = message;
+      document.getElementById('resultsContainer').appendChild(resultDiv);
+
+      if (guess === secretNumber) {
+        totalEarnings += reward;
+        document.getElementById('guessInput').disabled = true;
+
+        setTimeout(() => {
+          if (gamesPlayed < maxRounds) {
+            document.getElementById('guessInput').disabled = false;
+            startNewRound();
+          } else {
+            endGame();
+          }
+        }, 1500);
+      }
+    }
+
+    function endGame() {
+      const bonus = roundsWon === maxRounds ? 20 : 0;
+      const finalEarnings = totalEarnings + bonus;
+
+      document.getElementById('guessInput').style.display = 'none';
+      document.querySelector('button[onclick="submitGuess()"]').style.display = 'none';
+
+      const finalDiv = document.createElement('div');
+      finalDiv.className = 'game-status';
+      finalDiv.style.fontSize = '1.3em';
+      finalDiv.style.marginTop = '30px';
+      finalDiv.innerHTML = `
+        <strong>Game Over!</strong><br>
+        Correct Guesses: ${roundsWon}/${maxRounds}<br>
+        Earnings: ${totalEarnings} MBucks ${bonus > 0 ? `+ ${bonus} Bonus = ${finalEarnings}` : ''} 🎊
+      `;
+      document.getElementById('resultsContainer').appendChild(finalDiv);
+
+      fetch('/earn', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({userId: window.currentUser?.userId, mbucks: finalEarnings})
+      }).then(() => {
+        refreshBalance();
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.currentUser && window.currentUser.userId) {
+        startNewRound();
+        refreshBalance();
+        document.getElementById('refreshBalanceBtn').addEventListener('click', refreshBalance);
+        document.getElementById('guessInput').addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') submitGuess();
+        });
+      } else {
+        alert('Error: User not authenticated. Redirecting to login...');
+        window.location.href = '/login.html';
+      }
+    });
+  </script>
+</body>
+</html>

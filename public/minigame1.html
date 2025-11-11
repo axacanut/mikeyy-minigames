@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Whack-a-Mole - Minigames</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>🔨 Whack-a-Mole!</h1>
+    <p>Click the purple moles as fast as you can!</p>
+    <div class="balance-container">
+      <span>Your MBucks: </span><span id="balance">0</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="game-status">
+      <span>Score: <span id="score">0</span></span> | <span>Time: <span id="timer">30</span>s</span>
+    </div>
+    <div id="gameContainer"></div>
+  </main>
+
+  <footer>
+    <button id="playAgainBtn" onclick="location.reload()">Play Again</button>
+    <button id="refreshBalanceBtn">Refresh Balance</button>
+    <button onclick="location.href='index.html'">Back to Gallery</button>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    // Get current user from main.js
+    async function refreshBalance() {
+      try {
+        const res = await fetch('/balance', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({userId: window.currentUser?.userId})
+        });
+        const data = await res.json();
+        document.getElementById('balance').textContent = data.mbucks || 0;
+      } catch (err) {
+        console.error('Error refreshing balance:', err);
+      }
+    }
+
+    function startWhackGame(containerId, userId, durationSeconds) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+      const spots = [];
+      let score = 0;
+      let gameOver = false;
+      let activeMoleIndex = -1;
+      let timeLeft = durationSeconds;
+
+      // Create 9 mole spots
+      for (let i = 0; i < 9; i++) {
+        const spot = document.createElement('div');
+        spot.className = 'mole-spot';
+        spot.innerHTML = '🐭';
+        spot.style.fontSize = '3em';
+        spot.style.display = 'flex';
+        spot.style.alignItems = 'center';
+        spot.style.justifyContent = 'center';
+        container.appendChild(spot);
+        spots.push(spot);
+
+        spot.addEventListener('click', () => {
+          if (!gameOver && i === activeMoleIndex) {
+            score += 3;
+            document.getElementById('score').textContent = score;
+            spots[activeMoleIndex].classList.remove('active-mole');
+            activeMoleIndex = -1;
+          }
+        });
+      }
+
+      function spawnMole() {
+        if (gameOver) return;
+        if (activeMoleIndex !== -1) spots[activeMoleIndex].classList.remove('active-mole');
+        activeMoleIndex = Math.floor(Math.random() * spots.length);
+        spots[activeMoleIndex].classList.add('active-mole');
+      }
+
+      spawnMole();
+      const moleInterval = setInterval(spawnMole, 600);
+
+      // Timer
+      const timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timer').textContent = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          gameOver = true;
+          clearInterval(moleInterval);
+          container.innerHTML = `<div class="game-status" style="margin-top: 40px; font-size: 2em;">Game Over!<br>You earned ${score} MBucks 🎉</div>`;
+          document.getElementById('playAgainBtn').style.display = 'inline-block';
+
+          fetch('/earn', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({userId, mbucks: score})
+          }).then(() => {
+            refreshBalance();
+          });
+        }
+      }, 1000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Wait for main.js to initialize
+      if (window.currentUser && window.currentUser.userId) {
+        startWhackGame('gameContainer', window.currentUser.userId, 30);
+        refreshBalance();
+        document.getElementById('refreshBalanceBtn').addEventListener('click', refreshBalance);
+      } else {
+        alert('Error: User not authenticated. Redirecting to login...');
+        window.location.href = '/login.html';
+      }
+    });
+  </script>
+</body>
+</html>

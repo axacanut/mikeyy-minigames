@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mikeyy's Minigames</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>🎮 Mikeyy's Minigames</h1>
+    <p>Welcome, <strong id="username">Player</strong>! 👋</p>
+    <p>Earn MBucks and exchange them for stream points! 💎</p>
+    <div class="balance-container">
+      <span>Your MBucks: </span><span id="balance">0</span>
+    </div>
+  </header>
+
+  <main class="game-gallery">
+    <div class="game-card" onclick="location.href='minigame1.html'">
+      <div class="game-icon">🔨</div>
+      <strong>Whack-a-Mole</strong>
+      <p style="font-size: 0.8em; color: #666; margin-top: 5px;">Click moles for 30 seconds</p>
+    </div>
+    
+    <div class="game-card" onclick="location.href='minigame2.html'">
+      <div class="game-icon">🎯</div>
+      <strong>Number Guessing</strong>
+      <p style="font-size: 0.8em; color: #666; margin-top: 5px;">Guess the secret number</p>
+    </div>
+
+    <div class="game-card" onclick="location.href='minigame3.html'">
+      <div class="game-icon">⚡</div>
+      <strong>Clicker Frenzy</strong>
+      <p style="font-size: 0.8em; color: #666; margin-top: 5px;">Click for 10 seconds</p>
+    </div>
+
+    <div class="game-card" onclick="location.href='minigame4.html'">
+      <div class="game-icon">🧠</div>
+      <strong>Memory Match</strong>
+      <p style="font-size: 0.8em; color: #666; margin-top: 5px;">Match all the pairs</p>
+    </div>
+  </main>
+
+  <footer>
+    <button id="refreshBalanceBtn">🔄 Refresh Balance</button>
+    <button id="exchangeBtn">💰 Exchange MBucks</button>
+    <button id="logoutBtn">🚪 Logout</button>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

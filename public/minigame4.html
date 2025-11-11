@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memory Match - Minigames</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>🧠 Memory Match</h1>
+    <p>Match all the pairs to win big! 🎁</p>
+    <div class="balance-container">
+      <span>Your MBucks: </span><span id="balance">0</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="game-status">
+      <span>Pairs Found: <span id="pairsFound">0</span>/8</span> | <span>Moves: <span id="moveCount">0</span></span>
+    </div>
+    <div class="memory-grid" id="gameGrid"></div>
+    <div id="resultMessage"></div>
+  </main>
+
+  <footer>
+    <button onclick="location.reload()">Play Again</button>
+    <button id="refreshBalanceBtn">Refresh Balance</button>
+    <button onclick="location.href='index.html'">Back to Gallery</button>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    const emojis = ['🍕', '🍔', '🌮', '🍜', '🍱', '🍰', '🍦', '🥤'];
+    const cards = [...emojis, ...emojis]; // Pairs
+    let shuffledCards = [];
+    let flipped = [];
+    let matched = [];
+    let moves = 0;
+    let gameActive = true;
+
+    function shuffleCards() {
+      shuffledCards = cards.sort(() => Math.random() - 0.5);
+    }
+
+    function refreshBalance() {
+      try {
+        fetch('/balance', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({userId: window.currentUser?.userId})
+        })
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('balance').textContent = data.mbucks || 0;
+        });
+      } catch (err) {
+        console.error('Error refreshing balance:', err);
+      }
+    }
+
+    function createCard(index) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.index = index;
+      card.dataset.emoji = shuffledCards[index];
+      card.textContent = '?';
+      
+      card.addEventListener('click', () => flipCard(card));
+      return card;
+    }
+
+    function flipCard(card) {
+      if (!gameActive || card.classList.contains('flipped') || card.classList.contains('matched')) {
+        return;
+      }
+
+      card.textContent = card.dataset.emoji;
+      card.classList.add('flipped');
+      flipped.push(card);
+
+      if (flipped.length === 2) {
+        moves++;
+        document.getElementById('moveCount').textContent = moves;
+        checkMatch();
+      }
+    }
+
+    function checkMatch() {
+      const [card1, card2] = flipped;
+      const isMatch = card1.dataset.emoji === card2.dataset.emoji;
+
+      if (isMatch) {
+        card1.classList.add('matched');
+        card2.classList.add('matched');
+        matched.push(card1, card2);
+        document.getElementById('pairsFound').textContent = matched.length / 2;
+        flipped = [];
+
+        if (matched.length === cards.length) {
+          endGame();
+        }
+      } else {
+        setTimeout(() => {
+          card1.textContent = '?';
+          card2.textContent = '?';
+          card1.classList.remove('flipped');
+          card2.classList.remove('flipped');
+          flipped = [];
+        }, 1000);
+      }
+    }
+
+    function endGame() {
+      gameActive = false;
+      const reward = Math.max(10, 50 - (moves * 2)); // Harder to get high rewards
+      
+      const resultDiv = document.getElementById('resultMessage');
+      resultDiv.innerHTML = `
+        <div class="game-status" style="font-size: 1.3em; margin-top: 30px;">
+          🎉 All matched! <br>
+          Moves: ${moves}<br>
+          You earned ${reward} MBucks! 🎊
+        </div>
+      `;
+
+      fetch('/earn', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({userId: window.currentUser?.userId, mbucks: reward})
+      }).then(() => {
+        refreshBalance();
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.currentUser && window.currentUser.userId) {
+        shuffleCards();
+        const grid = document.getElementById('gameGrid');
+        
+        for (let i = 0; i < cards.length; i++) {
+          grid.appendChild(createCard(i));
+        }
+
+        refreshBalance();
+        document.getElementById('refreshBalanceBtn').addEventListener('click', refreshBalance);
+      } else {
+        alert('Error: User not authenticated. Redirecting to login...');
+        window.location.href = '/login.html';
+      }
+    });
+  </script>
+</body>
+</html>
