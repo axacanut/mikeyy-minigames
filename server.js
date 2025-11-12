@@ -8,7 +8,7 @@ app.use(bodyParser.json());
 app.use(express.static('public'));
 
 const DB_FILE = './db.json';
-const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1437734443501621300/s9Nqdv4iNp4uXzXOFP40OW17ofLnysy0r4cTa4JkPAI2-KKBWn12yGT4r7TVf4Le19NJ';
+const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1438090257655529568/tWGEyR2XDyzfcCRFXajp4XlNOCs3JNSkUG82SwT9g6yljVjkloLxALUqRc91nDzWFZl7';
 const DISCORD_CLIENT_ID = '1437736975397294150'; // Add your Discord app client ID
 const DISCORD_CLIENT_SECRET = 'dmyzdw7EJ2Fb30yCji2vxOquzabpilN-'; // Add your Discord app secret
 const REDIRECT_URI = 'https://mikeyy-minigames.onrender.com/auth/discord/callback';
