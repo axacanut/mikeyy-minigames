@@ -12,7 +12,7 @@ app.use(express.static('public'));
 const DB_FILE = './db.json';
 const ADMIN_FILE = './admins.json';
 const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1438090257655529568/tWGEyR2XDyzfcCRFXajp4XlNOCs3JNSkUG82SwT9g6yljVjkloLxALUqRc91nDzWFZl7';
-const DISCORD_CLIENT_ID = '1437736975397294150';
+const DISCORD_CLIENT_ID = '1417788683024597062';
 const DISCORD_CLIENT_SECRET = 'dmyzdw7EJ2Fb30yCji2vxOquzabpilN-';
 const REDIRECT_URI = 'https://mikeyy-minigames.onrender.com/auth/discord/callback';
 
