@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Memory Match - Minigames</title>
+  <title>Whack-a-Mole - Minigames</title>
   <style>
     * {
       margin: 0;
@@ -58,72 +58,99 @@
       align-items: center;
       justify-content: center;
       padding: 2rem;
-      background: #000;
+      background: linear-gradient(135deg, #2d5016 0%, #4a7c2e 100%);
       border-top: 4px solid #dc143c;
       border-bottom: 4px solid #dc143c;
     }
 
     .game-status {
-      font-size: 1.2rem;
+      font-size: 1.4rem;
       margin-bottom: 1.5rem;
       text-align: center;
-      color: #dc143c;
+      color: white;
       font-weight: bold;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 1rem 2rem;
+      border-radius: 10px;
     }
 
-    .memory-grid {
+    .game-grid {
       display: grid;
-      grid-template-columns: repeat(4, 100px);
-      gap: 15px;
+      grid-template-columns: repeat(3, 150px);
+      gap: 20px;
       margin-bottom: 2rem;
     }
 
-    .card {
-      width: 100px;
-      height: 100px;
-      background: linear-gradient(145deg, #8b0000, #dc143c);
-      border: 3px solid #5a0000;
-      border-radius: 15px;
+    .hole {
+      width: 150px;
+      height: 150px;
+      background: linear-gradient(145deg, #1a1a1a, #2d2d2d);
+      border: 4px solid #4a3520;
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 3rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 8px 16px rgba(0, 0, 0, 0.8);
+    }
+
+    .mole {
+      width: 100px;
+      height: 100px;
+      background: #8b4513;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3.5rem;
       cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.8);
-      user-select: none;
-      color: white;
-      font-weight: bold;
+      transition: transform 0.2s ease;
+      position: absolute;
+      bottom: -100px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
     }
 
-    .card:hover:not(.matched):not(.flipped) {
-      transform: scale(1.05);
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.9);
-      border-color: #dc143c;
+    .mole.up {
+      animation: moleUp 0.3s ease forwards;
     }
 
-    .card.flipped {
-      background: white;
-      color: #000;
-      border-color: #dc143c;
+    .mole.down {
+      animation: moleDown 0.3s ease forwards;
     }
 
-    .card.matched {
-      background: linear-gradient(145deg, #dc143c, #ff0000);
-      color: white;
-      border-color: #8b0000;
-      cursor: default;
-      animation: matchPulse 0.5s ease;
+    .mole:hover {
+      transform: scale(1.1);
     }
 
-    @keyframes matchPulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.1); }
+    .mole.hit {
+      animation: moleHit 0.3s ease forwards;
+    }
+
+    @keyframes moleUp {
+      from { bottom: -100px; }
+      to { bottom: 20px; }
+    }
+
+    @keyframes moleDown {
+      from { bottom: 20px; }
+      to { bottom: -100px; }
+    }
+
+    @keyframes moleHit {
+      0% { transform: scale(1); }
+      50% { transform: scale(0.8) rotate(20deg); }
+      100% { transform: scale(0) rotate(40deg); }
     }
 
     #resultMessage {
       font-size: 1.2rem;
       text-align: center;
+      color: white;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 1.5rem;
+      border-radius: 10px;
+      margin-top: 1rem;
     }
 
     footer {
@@ -152,24 +179,35 @@
       box-shadow: 0 4px 8px rgba(220, 20, 60, 0.5);
     }
 
+    footer button:disabled {
+      background: #999;
+      cursor: not-allowed;
+      transform: none;
+    }
+
     @media (max-width: 600px) {
-      .memory-grid {
-        grid-template-columns: repeat(4, 70px);
-        gap: 10px;
+      .game-grid {
+        grid-template-columns: repeat(3, 100px);
+        gap: 15px;
       }
 
-      .card {
+      .hole {
+        width: 100px;
+        height: 100px;
+      }
+
+      .mole {
         width: 70px;
         height: 70px;
-        font-size: 2rem;
+        font-size: 2.5rem;
       }
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>🧠 Memory Match</h1>
-    <p>Match all the pairs to win big! 🎁</p>
+    <h1>🔨 Whack-a-Mole</h1>
+    <p>Whack as many moles as you can! 🎯</p>
     <div class="balance-container">
       <span>Your MBucks: </span><span id="balance">0</span>
     </div>
@@ -177,31 +215,26 @@
 
   <main>
     <div class="game-status">
-      <span>Pairs Found: <span id="pairsFound">0</span>/8</span> | <span>Moves: <span id="moveCount">0</span></span>
+      <span>Score: <span id="score">0</span></span> | 
+      <span>Time: <span id="timer">30</span>s</span>
     </div>
-    <div class="memory-grid" id="gameGrid"></div>
+    <div class="game-grid" id="gameGrid"></div>
     <div id="resultMessage"></div>
   </main>
 
   <footer>
-    <button onclick="location.reload()">Play Again</button>
+    <button id="startBtn">Start Game</button>
     <button id="refreshBalanceBtn">Refresh Balance</button>
     <button onclick="window.history.back()">Back to Gallery</button>
   </footer>
 
   <script>
-    const emojis = ['🍕', '🍔', '🌮', '🍜', '🍱', '🍰', '🍦', '🥤'];
-    const cards = [...emojis, ...emojis]; // Pairs
-    let shuffledCards = [];
-    let flipped = [];
-    let matched = [];
-    let moves = 0;
-    let gameActive = true;
-    let isChecking = false; // NEW: Prevents clicking during match check
-
-    function shuffleCards() {
-      shuffledCards = cards.sort(() => Math.random() - 0.5);
-    }
+    let score = 0;
+    let timeLeft = 30;
+    let gameActive = false;
+    let moleInterval;
+    let timerInterval;
+    let currentMole = null;
 
     function refreshBalance() {
       try {
@@ -216,88 +249,133 @@
         })
         .catch(err => {
           console.error('Balance fetch error:', err);
-          document.getElementById('balance').textContent = '1000'; // Demo fallback
+          document.getElementById('balance').textContent = '1000';
         });
       } catch (err) {
         console.error('Error refreshing balance:', err);
-        document.getElementById('balance').textContent = '1000'; // Demo fallback
+        document.getElementById('balance').textContent = '1000';
       }
     }
 
-    function createCard(index) {
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.dataset.index = index;
-      card.dataset.emoji = shuffledCards[index];
-      card.textContent = '?';
+    function createHole(index) {
+      const hole = document.createElement('div');
+      hole.className = 'hole';
+      hole.dataset.index = index;
       
-      card.addEventListener('click', () => flipCard(card));
-      return card;
+      const mole = document.createElement('div');
+      mole.className = 'mole';
+      mole.textContent = '🐹';
+      mole.addEventListener('click', () => whackMole(mole));
+      
+      hole.appendChild(mole);
+      return hole;
     }
 
-    function flipCard(card) {
-      // FIXED: Comprehensive checks to prevent invalid flips
-      if (!gameActive || 
-          isChecking || 
-          card.classList.contains('flipped') || 
-          card.classList.contains('matched') ||
-          flipped.length >= 2 ||
-          flipped.includes(card)) { // NEW: Prevent clicking same card twice
+    function whackMole(mole) {
+      if (!gameActive || !mole.classList.contains('up')) return;
+      
+      score++;
+      document.getElementById('score').textContent = score;
+      
+      mole.classList.add('hit');
+      mole.classList.remove('up');
+      
+      setTimeout(() => {
+        mole.classList.remove('hit');
+        mole.classList.add('down');
+      }, 300);
+    }
+
+    function randomMole() {
+      if (!gameActive) return;
+      
+      const holes = document.querySelectorAll('.hole');
+      const randomIndex = Math.floor(Math.random() * holes.length);
+      const mole = holes[randomIndex].querySelector('.mole');
+      
+      // Don't show if already up
+      if (mole.classList.contains('up')) {
         return;
       }
-
-      card.textContent = card.dataset.emoji;
-      card.classList.add('flipped');
-      flipped.push(card);
-
-      if (flipped.length === 2) {
-        moves++;
-        document.getElementById('moveCount').textContent = moves;
-        isChecking = true; // NEW: Lock the board
-        checkMatch();
-      }
+      
+      // Pop up
+      mole.classList.add('up');
+      mole.classList.remove('down');
+      
+      // Stay up for random time (500-1200ms)
+      const stayUpTime = Math.random() * 700 + 500;
+      
+      setTimeout(() => {
+        if (mole.classList.contains('up')) {
+          mole.classList.remove('up');
+          mole.classList.add('down');
+        }
+      }, stayUpTime);
     }
 
-    function checkMatch() {
-      const [card1, card2] = flipped;
-      const isMatch = card1.dataset.emoji === card2.dataset.emoji;
-
-      if (isMatch) {
-        card1.classList.add('matched');
-        card2.classList.add('matched');
-        matched.push(card1, card2);
-        document.getElementById('pairsFound').textContent = matched.length / 2;
-        flipped = [];
-        isChecking = false; // NEW: Unlock the board
-
-        if (matched.length === cards.length) {
+    function startGame() {
+      score = 0;
+      timeLeft = 30;
+      gameActive = true;
+      
+      document.getElementById('score').textContent = score;
+      document.getElementById('timer').textContent = timeLeft;
+      document.getElementById('resultMessage').innerHTML = '';
+      document.getElementById('startBtn').disabled = true;
+      
+      // Reset all moles
+      document.querySelectorAll('.mole').forEach(mole => {
+        mole.className = 'mole';
+      });
+      
+      // Start timer
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timer').textContent = timeLeft;
+        
+        if (timeLeft <= 0) {
           endGame();
         }
-      } else {
-        setTimeout(() => {
-          card1.textContent = '?';
-          card2.textContent = '?';
-          card1.classList.remove('flipped');
-          card2.classList.remove('flipped');
-          flipped = [];
-          isChecking = false; // NEW: Unlock the board after delay
-        }, 1000);
-      }
+      }, 1000);
+      
+      // Start spawning moles (faster as game progresses)
+      let spawnSpeed = 800;
+      moleInterval = setInterval(() => {
+        randomMole();
+        // Speed up slightly over time
+        if (timeLeft < 20 && spawnSpeed > 500) {
+          clearInterval(moleInterval);
+          spawnSpeed = 600;
+          moleInterval = setInterval(randomMole, spawnSpeed);
+        }
+      }, spawnSpeed);
     }
 
     function endGame() {
       gameActive = false;
-      const reward = Math.min(70, Math.max(10, 100 - (moves * 5))); // Max 70 MBucks
+      clearInterval(moleInterval);
+      clearInterval(timerInterval);
+      
+      // Calculate reward: max 70 MBucks for 14+ moles hit
+      const reward = Math.min(70, Math.max(10, score * 5));
       
       const resultDiv = document.getElementById('resultMessage');
       resultDiv.innerHTML = `
-        <div class="game-status" style="font-size: 1.3em; margin-top: 30px;">
-          🎉 All matched! <br>
-          Moves: ${moves}<br>
+        <div style="font-size: 1.3em;">
+          🎉 Game Over! <br>
+          You whacked ${score} moles!<br>
           You earned ${reward} MBucks! 🎊
         </div>
       `;
-
+      
+      document.getElementById('startBtn').disabled = false;
+      
+      // Hide all moles
+      document.querySelectorAll('.mole').forEach(mole => {
+        mole.classList.remove('up');
+        mole.classList.add('down');
+      });
+      
       fetch('/earn', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
@@ -311,17 +389,18 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      // Demo mode - works without server
       window.currentUser = window.currentUser || {userId: 'demo'};
       
-      shuffleCards();
       const grid = document.getElementById('gameGrid');
       
-      for (let i = 0; i < cards.length; i++) {
-        grid.appendChild(createCard(i));
+      // Create 9 holes (3x3 grid)
+      for (let i = 0; i < 9; i++) {
+        grid.appendChild(createHole(i));
       }
-
+      
       refreshBalance();
+      
+      document.getElementById('startBtn').addEventListener('click', startGame);
       document.getElementById('refreshBalanceBtn').addEventListener('click', refreshBalance);
     });
   </script>
