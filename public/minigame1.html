@@ -3,13 +3,173 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Whack-a-Mole - Minigames</title>
-  <link rel="stylesheet" href="css/style.css">
+  <title>Memory Match - Minigames</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #e8e8e8;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      color: #333;
+      margin: 0;
+    }
+
+    header {
+      text-align: center;
+      padding: 2rem;
+      background: white;
+      border-bottom: 4px solid #dc143c;
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      color: #8b0000;
+      font-weight: bold;
+    }
+
+    header p {
+      color: #666;
+      font-size: 1.1rem;
+    }
+
+    .balance-container {
+      margin-top: 1rem;
+      padding: 0.8rem 1.5rem;
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #dc143c;
+      background: #f0f0f0;
+      display: inline-block;
+      border-radius: 8px;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      background: #000;
+      border-top: 4px solid #dc143c;
+      border-bottom: 4px solid #dc143c;
+    }
+
+    .game-status {
+      font-size: 1.2rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      color: #dc143c;
+      font-weight: bold;
+    }
+
+    .memory-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 100px);
+      gap: 15px;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(145deg, #8b0000, #dc143c);
+      border: 3px solid #5a0000;
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.8);
+      user-select: none;
+      color: white;
+      font-weight: bold;
+    }
+
+    .card:hover:not(.matched):not(.flipped) {
+      transform: scale(1.05);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.9);
+      border-color: #dc143c;
+    }
+
+    .card.flipped {
+      background: white;
+      color: #000;
+      border-color: #dc143c;
+    }
+
+    .card.matched {
+      background: linear-gradient(145deg, #dc143c, #ff0000);
+      color: white;
+      border-color: #8b0000;
+      cursor: default;
+      animation: matchPulse 0.5s ease;
+    }
+
+    @keyframes matchPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    #resultMessage {
+      font-size: 1.2rem;
+      text-align: center;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      background: white;
+      border-top: 4px solid #dc143c;
+    }
+
+    footer button {
+      margin: 0.5rem;
+      padding: 0.8rem 1.5rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      background: #8b0000;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    footer button:hover {
+      transform: translateY(-2px);
+      background: #dc143c;
+      box-shadow: 0 4px 8px rgba(220, 20, 60, 0.5);
+    }
+
+    @media (max-width: 600px) {
+      .memory-grid {
+        grid-template-columns: repeat(4, 70px);
+        gap: 10px;
+      }
+
+      .card {
+        width: 70px;
+        height: 70px;
+        font-size: 2rem;
+      }
+    }
+  </style>
 </head>
 <body>
   <header>
-    <h1>🔨 Whack-a-Mole!</h1>
-    <p>Click the purple moles as fast as you can!</p>
+    <h1>🧠 Memory Match</h1>
+    <p>Match all the pairs to win big! 🎁</p>
     <div class="balance-container">
       <span>Your MBucks: </span><span id="balance">0</span>
     </div>
@@ -17,107 +177,152 @@
 
   <main>
     <div class="game-status">
-      <span>Score: <span id="score">0</span></span> | <span>Time: <span id="timer">30</span>s</span>
+      <span>Pairs Found: <span id="pairsFound">0</span>/8</span> | <span>Moves: <span id="moveCount">0</span></span>
     </div>
-    <div id="gameContainer"></div>
+    <div class="memory-grid" id="gameGrid"></div>
+    <div id="resultMessage"></div>
   </main>
 
   <footer>
-    <button id="playAgainBtn" onclick="location.reload()">Play Again</button>
+    <button onclick="location.reload()">Play Again</button>
     <button id="refreshBalanceBtn">Refresh Balance</button>
-    <button onclick="location.href='index.html'">Back to Gallery</button>
+    <button onclick="window.history.back()">Back to Gallery</button>
   </footer>
 
-  <script src="js/main.js"></script>
   <script>
-    // Get current user from main.js
-    async function refreshBalance() {
+    const emojis = ['🍕', '🍔', '🌮', '🍜', '🍱', '🍰', '🍦', '🥤'];
+    const cards = [...emojis, ...emojis]; // Pairs
+    let shuffledCards = [];
+    let flipped = [];
+    let matched = [];
+    let moves = 0;
+    let gameActive = true;
+    let isChecking = false; // NEW: Prevents clicking during match check
+
+    function shuffleCards() {
+      shuffledCards = cards.sort(() => Math.random() - 0.5);
+    }
+
+    function refreshBalance() {
       try {
-        const res = await fetch('/balance', {
+        fetch('/balance', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({userId: window.currentUser?.userId})
+        })
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('balance').textContent = data.mbucks || 0;
+        })
+        .catch(err => {
+          console.error('Balance fetch error:', err);
+          document.getElementById('balance').textContent = '1000'; // Demo fallback
         });
-        const data = await res.json();
-        document.getElementById('balance').textContent = data.mbucks || 0;
       } catch (err) {
         console.error('Error refreshing balance:', err);
+        document.getElementById('balance').textContent = '1000'; // Demo fallback
       }
     }
 
-    function startWhackGame(containerId, userId, durationSeconds) {
-      const container = document.getElementById(containerId);
-      container.innerHTML = '';
-      const spots = [];
-      let score = 0;
-      let gameOver = false;
-      let activeMoleIndex = -1;
-      let timeLeft = durationSeconds;
+    function createCard(index) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.index = index;
+      card.dataset.emoji = shuffledCards[index];
+      card.textContent = '?';
+      
+      card.addEventListener('click', () => flipCard(card));
+      return card;
+    }
 
-      // Create 9 mole spots
-      for (let i = 0; i < 9; i++) {
-        const spot = document.createElement('div');
-        spot.className = 'mole-spot';
-        spot.innerHTML = '🐭';
-        spot.style.fontSize = '3em';
-        spot.style.display = 'flex';
-        spot.style.alignItems = 'center';
-        spot.style.justifyContent = 'center';
-        container.appendChild(spot);
-        spots.push(spot);
-
-        spot.addEventListener('click', () => {
-          if (!gameOver && i === activeMoleIndex) {
-            score += 3;
-            document.getElementById('score').textContent = score;
-            spots[activeMoleIndex].classList.remove('active-mole');
-            activeMoleIndex = -1;
-          }
-        });
+    function flipCard(card) {
+      // FIXED: Comprehensive checks to prevent invalid flips
+      if (!gameActive || 
+          isChecking || 
+          card.classList.contains('flipped') || 
+          card.classList.contains('matched') ||
+          flipped.length >= 2 ||
+          flipped.includes(card)) { // NEW: Prevent clicking same card twice
+        return;
       }
 
-      function spawnMole() {
-        if (gameOver) return;
-        if (activeMoleIndex !== -1) spots[activeMoleIndex].classList.remove('active-mole');
-        activeMoleIndex = Math.floor(Math.random() * spots.length);
-        spots[activeMoleIndex].classList.add('active-mole');
+      card.textContent = card.dataset.emoji;
+      card.classList.add('flipped');
+      flipped.push(card);
+
+      if (flipped.length === 2) {
+        moves++;
+        document.getElementById('moveCount').textContent = moves;
+        isChecking = true; // NEW: Lock the board
+        checkMatch();
       }
+    }
 
-      spawnMole();
-      const moleInterval = setInterval(spawnMole, 600);
+    function checkMatch() {
+      const [card1, card2] = flipped;
+      const isMatch = card1.dataset.emoji === card2.dataset.emoji;
 
-      // Timer
-      const timerInterval = setInterval(() => {
-        timeLeft--;
-        document.getElementById('timer').textContent = timeLeft;
-        if (timeLeft <= 0) {
-          clearInterval(timerInterval);
-          gameOver = true;
-          clearInterval(moleInterval);
-          container.innerHTML = `<div class="game-status" style="margin-top: 40px; font-size: 2em;">Game Over!<br>You earned ${score} MBucks 🎉</div>`;
-          document.getElementById('playAgainBtn').style.display = 'inline-block';
+      if (isMatch) {
+        card1.classList.add('matched');
+        card2.classList.add('matched');
+        matched.push(card1, card2);
+        document.getElementById('pairsFound').textContent = matched.length / 2;
+        flipped = [];
+        isChecking = false; // NEW: Unlock the board
 
-          fetch('/earn', {
-            method: 'POST',
-            headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({userId, mbucks: score})
-          }).then(() => {
-            refreshBalance();
-          });
+        if (matched.length === cards.length) {
+          endGame();
         }
-      }, 1000);
+      } else {
+        setTimeout(() => {
+          card1.textContent = '?';
+          card2.textContent = '?';
+          card1.classList.remove('flipped');
+          card2.classList.remove('flipped');
+          flipped = [];
+          isChecking = false; // NEW: Unlock the board after delay
+        }, 1000);
+      }
+    }
+
+    function endGame() {
+      gameActive = false;
+      const reward = Math.min(70, Math.max(10, 100 - (moves * 5))); // Max 70 MBucks
+      
+      const resultDiv = document.getElementById('resultMessage');
+      resultDiv.innerHTML = `
+        <div class="game-status" style="font-size: 1.3em; margin-top: 30px;">
+          🎉 All matched! <br>
+          Moves: ${moves}<br>
+          You earned ${reward} MBucks! 🎊
+        </div>
+      `;
+
+      fetch('/earn', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({userId: window.currentUser?.userId, mbucks: reward})
+      }).then(() => {
+        refreshBalance();
+      }).catch(err => {
+        console.error('Earn error:', err);
+        refreshBalance();
+      });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      // Wait for main.js to initialize
-      if (window.currentUser && window.currentUser.userId) {
-        startWhackGame('gameContainer', window.currentUser.userId, 30);
-        refreshBalance();
-        document.getElementById('refreshBalanceBtn').addEventListener('click', refreshBalance);
-      } else {
-        alert('Error: User not authenticated. Redirecting to login...');
-        window.location.href = '/login.html';
+      // Demo mode - works without server
+      window.currentUser = window.currentUser || {userId: 'demo'};
+      
+      shuffleCards();
+      const grid = document.getElementById('gameGrid');
+      
+      for (let i = 0; i < cards.length; i++) {
+        grid.appendChild(createCard(i));
       }
+
+      refreshBalance();
+      document.getElementById('refreshBalanceBtn').addEventListener('click', refreshBalance);
     });
   </script>
 </body>
