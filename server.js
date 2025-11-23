@@ -100,7 +100,7 @@ app.post('/exchange', async(req,res)=>{
   await fetch(DISCORD_WEBHOOK,{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({content:`@${username} exchanged ${streamPoints*10} MBucks for ${streamPoints} stream points! 🎉`})
+    body: JSON.stringify({content:`@🔧 Moderator🔧 ${username} exchanged ${streamPoints*10} MBucks for ${streamPoints} stream points! 🎉`})
   }).catch(err => console.error('Discord webhook error:', err));
   res.send({message:`Exchanged ${streamPoints*10} MBucks for ${streamPoints} stream points!`, mbucks: db[userId]});
 });
