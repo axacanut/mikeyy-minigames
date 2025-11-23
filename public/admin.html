@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Mikeyy's Minigames</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #1a1a1a;
+      color: white;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+      padding: 2rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 15px;
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .admin-badge {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background: #dc143c;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+
+    .section {
+      background: #2d2d2d;
+      border-radius: 15px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .section h2 {
+      color: #667eea;
+      margin-bottom: 1.5rem;
+      font-size: 1.8rem;
+    }
+
+    .users-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    .users-table th {
+      background: #667eea;
+      padding: 1rem;
+      text-align: left;
+      font-weight: bold;
+    }
+
+    .users-table td {
+      padding: 1rem;
+      border-bottom: 1px solid #444;
+    }
+
+    .users-table tr:hover {
+      background: #3a3a3a;
+    }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      margin: 0.25rem;
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #764ba2;
+      transform: translateY(-2px);
+    }
+
+    .btn-danger {
+      background: #dc143c;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #a00;
+      transform: translateY(-2px);
+    }
+
+    .btn-success {
+      background: #28a745;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #218838;
+      transform: translateY(-2px);
+    }
+
+    input[type="text"], input[type="number"] {
+      padding: 0.5rem;
+      border: 2px solid #667eea;
+      border-radius: 8px;
+      background: #1a1a1a;
+      color: white;
+      font-size: 1rem;
+      margin: 0.25rem;
+    }
+
+    .admin-actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 1.5rem;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    .admin-list {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .admin-item {
+      background: #3a3a3a;
+      padding: 1rem;
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .primary-badge {
+      background: #ffd700;
+      color: #000;
+      padding: 0.25rem 0.75rem;
+      border-radius: 15px;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 2rem;
+      font-size: 1.2rem;
+      color: #667eea;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+
+      .users-table {
+        font-size: 0.85rem;
+      }
+
+      .users-table th, .users-table td {
+        padding: 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🔐 Admin Panel</h1>
+      <p>Welcome, <strong id="adminName">Admin</strong></p>
+      <span class="admin-badge" id="roleBadge">Loading...</span>
+    </header>
+
+    <div class="stats" id="stats">
+      <div class="stat-card">
+        <div class="stat-number" id="totalUsers">0</div>
+        <div class="stat-label">Total Users</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="totalMBucks">0</div>
+        <div class="stat-label">Total MBucks in Circulation</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="totalAdmins">0</div>
+        <div class="stat-label">Total Admins</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>👥 User Management</h2>
+      <div id="usersContainer" class="loading">Loading users...</div>
+    </div>
+
+    <div class="section" id="adminManagement" style="display: none;">
+      <h2>👑 Admin Management</h2>
+      <div class="admin-actions">
+        <input type="text" id="newAdminId" placeholder="Enter Discord User ID">
+        <input type="text" id="newAdminName" placeholder="Enter Username (optional)">
+        <button class="btn btn-success" onclick="addAdmin()">➕ Add Admin</button>
+      </div>
+      <div class="admin-list" id="adminList"></div>
+    </div>
+
+    <div style="text-align: center; margin-top: 2rem;">
+      <button class="btn btn-primary" onclick="location.href='/'">🏠 Back to Home</button>
+      <button class="btn btn-primary" onclick="refreshData()">🔄 Refresh Data</button>
+    </div>
+  </div>
+
+  <script>
+    let currentAdmin = null;
+
+    async function checkAdmin() {
+      try {
+        const res = await fetch('/admin/check');
+        const data = await res.json();
+        
+        if (!data.isAdmin) {
+          alert('Access Denied! You are not an admin.');
+          location.href = '/';
+          return false;
+        }
+        
+        currentAdmin = data;
+        document.getElementById('roleBadge').textContent = 
+          data.role === 'primary' ? '👑 Primary Admin' : '🔧 Admin';
+        
+        if (data.role === 'primary') {
+          document.getElementById('adminManagement').style.display = 'block';
+        }
+        
+        return true;
+      } catch (error) {
+        console.error('Auth check error:', error);
+        alert('Error checking admin status');
+        location.href = '/';
+        return false;
+      }
+    }
+
+    async function loadUsers() {
+      try {
+        const res = await fetch('/admin/users');
+        const data = await res.json();
+        
+        let totalMBucks = 0;
+        let html = `
+          <table class="users-table">
+            <thead>
+              <tr>
+                <th>User ID</th>
+                <th>MBucks</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+        
+        data.users.forEach(user => {
+          totalMBucks += user.mbucks;
+          const adminBadge = user.isAdmin ? 
+            `<span class="primary-badge">${user.adminRole === 'primary' ? '👑 PRIMARY' : '🔧 ADMIN'}</span>` : '';
+          
+          html += `
+            <tr>
+              <td>${user.userId.substring(0, 20)}...</td>
+              <td><strong>${user.mbucks}</strong></td>
+              <td>${adminBadge}</td>
+              <td>
+                <button class="btn btn-primary" onclick="editBalance('${user.userId}', ${user.mbucks})">✏️ Edit</button>
+              </td>
+            </tr>
+          `;
+        });
+        
+        html += '</tbody></table>';
+        document.getElementById('usersContainer').innerHTML = html;
+        
+        // Update stats
+        document.getElementById('totalUsers').textContent = data.users.length;
+        document.getElementById('totalMBucks').textContent = totalMBucks.toLocaleString();
+      } catch (error) {
+        console.error('Error loading users:', error);
+        document.getElementById('usersContainer').innerHTML = '<p>Error loading users</p>';
+      }
+    }
+
+    async function loadAdmins() {
+      if (!currentAdmin || currentAdmin.role !== 'primary') return;
+      
+      try {
+        const res = await fetch('/admin/list-admins');
+        const data = await res.json();
+        
+        document.getElementById('totalAdmins').textContent = data.admins.length;
+        
+        let html = '';
+        data.admins.forEach(admin => {
+          const isPrimary = admin.role === 'primary';
+          html += `
+            <div class="admin-item">
+              <div>
+                <strong>${admin.username || admin.userId}</strong>
+                ${isPrimary ? '<span class="primary-badge">PRIMARY</span>' : ''}
+                <br>
+                <small style="opacity: 0.7;">${admin.userId}</small>
+              </div>
+              ${!isPrimary ? `<button class="btn btn-danger" onclick="removeAdmin('${admin.userId}')">Remove</button>` : ''}
+            </div>
+          `;
+        });
+        
+        document.getElementById('adminList').innerHTML = html;
+      } catch (error) {
+        console.error('Error loading admins:', error);
+      }
+    }
+
+    async function editBalance(userId, currentBalance) {
+      const newBalance = prompt(`Enter new balance for user ${userId.substring(0, 20)}...\n\nCurrent balance: ${currentBalance} MBucks`, currentBalance);
+      
+      if (newBalance === null) return;
+      
+      const balance = parseInt(newBalance);
+      if (isNaN(balance) || balance < 0) {
+        alert('Invalid balance amount!');
+        return;
+      }
+      
+      try {
+        const res = await fetch('/admin/update-balance', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({userId, newBalance: balance})
+        });
+        
+        const data = await res.json();
+        alert(data.message);
+        await loadUsers();
+      } catch (error) {
+        console.error('Error updating balance:', error);
+        alert('Failed to update balance');
+      }
+    }
+
+    async function addAdmin() {
+      const userId = document.getElementById('newAdminId').value.trim();
+      const username = document.getElementById('newAdminName').value.trim();
+      
+      if (!userId) {
+        alert('Please enter a Discord User ID');
+        return;
+      }
+      
+      try {
+        const res = await fetch('/admin/add-admin', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({userId, username})
+        });
+        
+        const data = await res.json();
+        alert(data.message);
+        
+        document.getElementById('newAdminId').value = '';
+        document.getElementById('newAdminName').value = '';
+        
+        await loadAdmins();
+      } catch (error) {
+        console.error('Error adding admin:', error);
+        alert('Failed to add admin');
+      }
+    }
+
+    async function removeAdmin(userId) {
+      if (!confirm('Are you sure you want to remove this admin?')) return;
+      
+      try {
+        const res = await fetch('/admin/remove-admin', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({userId})
+        });
+        
+        const data = await res.json();
+        alert(data.message);
+        await loadAdmins();
+      } catch (error) {
+        console.error('Error removing admin:', error);
+        alert('Failed to remove admin');
+      }
+    }
+
+    async function refreshData() {
+      await loadUsers();
+      await loadAdmins();
+    }
+
+    async function init() {
+      const isAdmin = await checkAdmin();
+      if (!isAdmin) return;
+      
+      await loadUsers();
+      await loadAdmins();
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
